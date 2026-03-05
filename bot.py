@@ -357,14 +357,23 @@ if not TOKEN:
     logger.error("❌ BOT_TOKEN не найден в переменных окружения!")
     raise ValueError("BOT_TOKEN не найден в переменных окружения")
 
-ADMIN_IDS: Set[int] = set()
+# ================= ИСПРАВЛЕНО: ВАШ ID АДМИНИСТРАТОРА =================
+# Временно добавляем ваш ID вручную, пока нет переменных окружения
+ADMIN_IDS: Set[int] = {5802587956}  # Мой ID
+
+# Остальной код загрузки ADMIN_IDS из переменных окружения теперь не нужен,
+# но мы оставим его для совместимости на будущее
 admin_ids_str = os.getenv("ADMIN_IDS", "")
 if admin_ids_str:
     try:
-        ADMIN_IDS = {int(id.strip()) for id in admin_ids_str.split(",") if id.strip().isdigit()}
-        logger.info(f"✅ Загружены ID администраторов: {ADMIN_IDS}")
+        # Добавляем ID из переменных окружения к уже существующим
+        env_ids = {int(id.strip()) for id in admin_ids_str.split(",") if id.strip().isdigit()}
+        ADMIN_IDS.update(env_ids)
+        logger.info(f"✅ Загружены ID администраторов из окружения: {env_ids}")
     except Exception as e:
         logger.error(f"❌ Ошибка при парсинге ADMIN_IDS: {e}")
+
+logger.info(f"✅ Итоговый список администраторов: {ADMIN_IDS}")
 
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
 YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
