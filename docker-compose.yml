@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: telegram_stars_bot
+    restart: unless-stopped
+    volumes:
+      - ./bot_data.json:/app/bot_data.json
+      - ./bot.log:/app/bot.log
+      - ./transactions.json:/app/transactions.json
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      ADMIN_IDS: ${ADMIN_IDS}
+    env_file:
+      - .env
