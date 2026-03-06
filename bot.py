@@ -169,42 +169,83 @@ import re
 from collections import defaultdict
 
 BANNED_CONTENT = {
-    "warning": {
+    "warning": {  # Лёгкий NSFW / намёки → обычно 1–6 часов или предупреждение
         "keywords": [
-            "порно", "эротика", "интим", "18+", "порн", "xxx",
-            "порнуха", "порнушка", "клубничка", "эротический", "порнографический",
-            "porn", "erotic", "nsfw", "xxx", "adult", "explicit",
-            "1 8 +", "18 +",
+            "порно", "porn", "porno", "pron", "pr0n", "p0rn", "xxx", "xхx", "18+", "1 8 +", "18 +", 
+            "hentai", "onlyfans", "of", "nude", "голая", "голые", "сиськи", "сиcьки", "жопа", "ж0па", 
+            "писю", "пизд", "п!зда", "эротик", "эротика", "клубничка", "порнушка", "порнуха", "sex", 
+            "секс", "seks", "nsfw", "adult", "explicit", "boobs", "tits", "t1ts", "breast", "сисяндры"
         ],
         "ban_hours": 1,
         "strikes_before_permanent": 3
     },
-    
-    "serious": {
+
+    "serious": {  # Жёсткий мат, секс, сексизм, лёгкий hate → 12–48 часов, 2–3 страйка → перма
         "keywords": [
-            "проститутк", "шлюх", "минет", "анальный", "вагина", "член", "пенис",
-            "влагалище", "трахнуть", "трахать", "сексуальный", "половой акт",
-            "оральный", "групповой", "жесткий", "порноактриса", "порнозвезда",
-            "fuck", "dick", "cock", "pussy", "asshole", "blowjob", "handjob",
-            "masturbat", "orgasm", "cum", "semen", "penis", "vagina",
-            "breast", "tits", "boobs", "nipples", "clit", "labia",
-            "fucking", "fucked", "motherfucker", "bitch", "whore", "slut",
+            # Мат и сексуальный хардкор (рус)
+            "хуй", "хyй", "х3й", "хуесос", "залуп", "похуй", "пизда", "п!зда", "пизд", "п3зда", 
+            "ебать", "еб@", "eбать", "ебал", "заеб", "заебал", "еб твою", "еб твою мать", 
+            "трах", "трахать", "выеб", "отыметь", "оттрах", "минет", "м!нет", "отсос", "сосать", 
+            "в рот", "deepthroat", "blowjob", "анал", "в жоп", "жопа", "очко", "анус", 
+            "дроч", "др0ч", "подроч", "мастурб", "handjob", "jerk off", 
+            "конч", "кончить", "сперм", "cum", "cumshot", "facial", "bukkake", 
+            # Сексизм / слуры
+            "шлюх", "шл0ха", "блядь", "бля", "блядина", "ебланка", "тёлка", "тeлка", "курица", 
+            "сука", "cука", "whore", "slut", "bitch", "cunt", "twat", 
+            "simp", "cuck", "cук", "инцел", "incel", "virgin", "девственник", "lookism", 
+            # ЛГБТ слуры
+            "пидор", "п!дор", "пидр", "пидорас", "пидрила", "педик", "петух", "опущ", "голубой", 
+            "гомик", "гомосек", "faggot", "fag", "f@ggot", "tranny", "shemale", "trap", "troon"
         ],
         "ban_hours": 24,
         "strikes_before_permanent": 2
     },
-    
-    "critical": {
+
+    "hate": {  # Расовый / национальный / религиозный hate → часто 7–30 дней
         "keywords": [
-            "детск", "малолет", "педо",
-            "насил", "растл", "изнасилован", "педофил",
-            "педофилия", "инцест", "кровосмешение", "зоофилия",
-            "child", "minor", "underage", "loli", "lolita", "pedo",
-            "rape", "sexual assault", "molest", "abuse", "incest",
-            "pedophile", "pedophilia", "child porn", "cp",
+            "негр", "ниг", "нигер", "nigger", "nigga", "n!gga", "n1gga", "черномаз", "обезьян", "макак", 
+            "чурк", "чурбан", "хач", "хачик", "узбег", "армяш", "даг", "чечен", 
+            "жид", "жидy", "kike", "heeb", 
+            "хохол", "укроп", "бандер", "свидом", "майдаун", 
+            "кацап", "москаль", "ватник", "рашка", "рашист", "орк", "z-орд", "путин*ист", 
+            "chink", "gook", "paki", "raghead", "towelhead", 
+            "zionist", "сионист"  # часто как coded hate
         ],
-        "ban_hours": 168,
-        "strikes_before_permanent": 999
+        "ban_hours": 168,  # 7 дней
+        "strikes_before_permanent": 2
+    },
+
+    "critical": {  # Педо / инцест / зоо / тяжёлые угрозы → почти всегда перма
+        "keywords": [
+            "педо", "педофил", "педофилия", "pedo", "pedophile", "pedophilia", 
+            "лоли", "loli", "шота", "shota", "cp", "csam", "childporn", "детскоепорно", 
+            "малолет", "underage", "малолетка", "rape", "насил", "изнасил", "molest", "abuse", 
+            "инцест", "incest", "кровосм", "mom son", "father daughter porn", 
+            "зоо", "зоофил", "bestiality", "еб*собак", "трах*животн", 
+            "necrophil", "мертвец*секс", "trup*еб"
+        ],
+        "ban_hours": 9999,  # фактически перма
+        "strikes_before_permanent": 1
+    },
+
+    "extreme": {  # Угрозы убийства / суицид / терроризм → мгновенный бан + репорт
+        "keywords": [
+            "убью", "зарежу", "задушу", "расстреляю", "башку*оторв", "сдохни", "нахуй сдохни", 
+            "kys", "kill yourself", "rope", "neck yourself", "go hang", "повесься", "зарежься", 
+            "suicide", "самоубийство", "terrorist", "allah akbar"  # в плохом контексте
+        ],
+        "ban_hours": 9999,
+        "strikes_before_permanent": 1
+    },
+
+    "other_slurs": {  # Дополнительные частые триггеры (retard и т.п.)
+        "keywords": [
+            "retard", "r*tard", "даун", "даyн", "дебил", "аутист", "аутизм", "sperg", 
+            "nazi", "наци", "фашист", "hitler", "heil", "swastika", 
+            "white suprem", "black suprem", "race war"
+        ],
+        "ban_hours": 48,
+        "strikes_before_permanent": 2
     }
 }
 
